@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Twitter selfie rekognition demo'
+
+Parameters:
+  RekognitionLambdaArn:
+    Type: String
+  ProcessFacesLambdaArn:
+    Type: String
+
+Resources:
+
+  StatesExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "lambda:InvokeFunction"
+                Resource: "*"
+
+  StateMachine:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      DefinitionString:
+        !Sub
+          - |-
+            {
+              "Comment": "Twitter selfie state machine",
+              "StartAt": "Rekognition",
+              "States": {
+                "Rekognition": {
+                  "Type": "Task",
+                  "Resource": "${RunRekognitionArn}",
+                  "Next": "RekErrorHandler"
+                },
+                "RekErrorHandler": {
+                  "Type" : "Choice",
+                  "Choices": [
+                    {
+                      "Variable": "$.result",
+                      "StringEquals": "Succeed",
+                      "Next": "ProcessFaces"
+                    },
+                    {
+                      "Variable": "$.result",
+                      "StringEquals": "Fail",
+                      "Next": "FailState"
+                    }
+                  ],
+                  "Default": "FailState"
+                },
+                "ProcessFaces": {
+                  "Type": "Task",
+                  "Resource": "${ProcessFacesArn}",
+                  "Next": "FaceErrorHandler"
+                },
+                "FaceErrorHandler": {
+                  "Type" : "Choice",
+                  "Choices": [
+                    {
+                      "Variable": "$.result",
+                      "StringEquals": "Succeed",
+                      "Next": "SucceedState"
+                    },
+                    {
+                      "Variable": "$.result",
+                      "StringEquals": "Fail",
+                      "Next": "FailState"
+                    }
+                  ],
+                  "Default": "FailState"
+                },
+                "FailState": {
+                  "Type": "Fail",
+                  "Error": "DefaultStateError",
+                  "Cause": "No Matches!"
+                },
+                "SucceedState": {
+                  "Type": "Succeed"
+                }
+              }
+            }
+          - ProcessFacesArn: !Ref ProcessFacesLambdaArn
+            RunRekognitionArn: !Ref RekognitionLambdaArn 
+      RoleArn: !GetAtt [ StatesExecutionRole, Arn ]
+
+Outputs:
+    StateMachineArn:
+        Value: !Ref StateMachine
+    StateMachineName:
+        Value: !GetAtt StateMachine.Name

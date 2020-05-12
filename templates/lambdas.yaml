@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    "Twitter Rekognition Demo - Lambdas \n"
+
+Parameters:
+  TBucket:
+    Type: String
+  DdbImageTable:
+    Type: String
+  DdbStatsTable:
+    Type: String
+  StateMachineArn:
+    Type: String
+  StateMachineName:
+    Type: String
+  CoreLayer:
+    Type: String
+
+Globals:
+  Function:
+    AutoPublishAlias: live
+    Handler: index.handler
+    MemorySize: 256
+    Runtime: python3.7
+    Timeout: 60
+    Tracing: Active
+    Layers:
+      - !Ref CoreLayer
+
+Resources:
+
+  AccessLogs:
+    Type: AWS::Logs::LogGroup
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      AccessLogSettings:
+        DestinationArn: !GetAtt AccessLogs.Arn
+        Format: $context.requestId
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 200
+      FailOnWarnings: True
+
+  Parser:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Properties:
+      CodeUri: ../lambdas/parser/
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket 
+        - StepFunctionsExecutionPolicy:
+            StateMachineName:
+              !Ref StateMachineName
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref DdbImageTable
+      Environment:
+        Variables:
+          StateMachineArn: !Ref StateMachineArn
+          DdbImageTable: !Ref DdbImageTable
+
+  AthenaQuery:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Properties:
+      CodeUri: ../lambdas/athenaquery/
+      Timeout: 300
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket 
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref DdbStatsTable
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+      Environment:
+        Variables:
+          TBucket: !Ref TBucket
+          DdbStatsTable: !Ref DdbStatsTable
+
+  AthenaDispatcher:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Properties:
+      CodeUri: ../lambdas/athenadispatcher/
+      Timeout: 300
+      Events:
+        ExplicitApi: # warning: creates a public endpoint
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: GET
+            Path: /athdispatch
+            TimeoutInMillis: 15000
+            PayloadFormatVersion: "2.0"
+            RouteSettings:
+              ThrottlingBurstLimit: 100
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket
+        - LambdaInvokePolicy:
+            FunctionName:
+              !Ref AthenaQuery
+      Environment:
+        Variables:
+          TBucket: !Ref TBucket
+          AthQueryLambdaName: !Ref AthenaQuery
+
+  GetSelfies:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Properties:
+      CodeUri: ../lambdas/getselfies/
+      Timeout: 300
+      Events:
+        ExplicitApi: # warning: creates a public endpoint
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: GET
+            Path: /selfies
+            TimeoutInMillis: 15000
+            PayloadFormatVersion: "2.0"
+            RouteSettings:
+              ThrottlingBurstLimit: 100
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket 
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref DdbStatsTable
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+      Environment:
+        Variables:
+          TBucket: !Ref TBucket
+          DdbStatsTable: !Ref DdbStatsTable
+
+  DelSelfie:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Properties:
+      CodeUri: ../lambdas/delselfie/
+      Timeout: 300
+      Events:
+        ExplicitApi: # warning: creates a public endpoint
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Method: POST
+            Path: /delselfie
+            TimeoutInMillis: 15000
+            PayloadFormatVersion: "2.0"
+            RouteSettings:
+              ThrottlingBurstLimit: 100
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket
+        - LambdaInvokePolicy:
+            FunctionName:
+              !Ref AthenaDispatcher
+      Environment:
+        Variables:
+          TBucket: !Ref TBucket
+          AthDispatcherLambdaName: !Ref AthenaDispatcher
+
+Outputs:
+  AthenaQueryArn:
+      Value: !GetAtt AthenaQuery.Arn
+  ParserArn:
+      Value: !GetAtt Parser.Arn
+  GetSelfies:
+      Value: !GetAtt GetSelfies.Arn
+  HttpApiUrl:
+      Description: URL of your API endpoint
+      Value:
+        Fn::Sub: 'https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/'
+  HttpApiId:
+    Description: Api id of HttpApi
+    Value:
+      Ref: HttpApi

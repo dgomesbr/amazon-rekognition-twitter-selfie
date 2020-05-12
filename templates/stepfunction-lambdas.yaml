@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "Twitter Rekognition Demo - StepFunction Lambdas \n"
+
+Parameters:
+  TBucket:
+    Type: String
+  DdbImageTable:
+    Type: String
+  DdbStatsTable:
+    Type: String
+  CollectionId:  
+    Default: "twitter-selfie"
+    Type: String
+
+Globals:
+  Function:
+    AutoPublishAlias: live
+    Handler: index.handler
+    MemorySize: 256
+    Runtime: python3.7
+    Timeout: 60   
+    Tracing: Active   
+    Environment:
+      Variables:
+        TBucket: !Ref TBucket
+        DdbStatsTable: !Ref DdbStatsTable
+        CollectionId: !Ref CollectionId
+
+Resources:
+
+  CoreLayer:
+      Type: AWS::Serverless::LayerVersion
+      Properties:
+        Description: requests awsxray PIL
+        ContentUri: ../layers/layer.zip
+        CompatibleRuntimes:
+          - python3.8
+          - python3.7
+          - python3.6
+        RetentionPolicy: Delete
+
+  Rekognition:
+    Type: AWS::Serverless::Function 
+    Properties:
+      Layers:
+        - !Ref CoreLayer 
+      CodeUri: ../lambdas/rekognition/        
+      Policies:
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket 
+        - DynamoDBCrudPolicy:
+            TableName:
+              !Ref DdbStatsTable
+        - arn:aws:iam::aws:policy/AmazonRekognitionFullAccess
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+
+  ProcessFaces:
+    Type: AWS::Serverless::Function 
+    Properties:
+      Layers:
+        - !Ref CoreLayer 
+      CodeUri: ../lambdas/processfaces/
+      Policies:
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - S3CrudPolicy:
+            BucketName:
+              !Ref TBucket
+        - RekognitionFacesManagementPolicy:
+            CollectionId:
+                !Ref CollectionId
+
+Outputs:
+  RekognitionLambdaArn:
+      Value: !GetAtt Rekognition.Arn
+  ProcessFacesLambdaArn:
+      Value: !GetAtt ProcessFaces.Arn
+  CoreLayer:
+      Value: !Ref CoreLayer

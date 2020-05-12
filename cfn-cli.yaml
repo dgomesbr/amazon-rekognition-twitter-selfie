@@ -1,0 +1,56 @@
+################################################################################################################
+# Modifying this configuration file:
+# 
+Version: 3
+
+Blueprints:
+
+  twitterSelfie:
+    Region: us-west-2
+    StackPolicy: ALLOW_ALL
+    Capabilities: [CAPABILITY_IAM]
+
+
+Stages:
+  default:
+    core:
+      Extends: twitterSelfie
+      Order: 1
+      Template: ./templates/core.yaml 
+      StackName: twitterSelfie-core
+
+    stepfunction-lambdas:
+      Extends: twitterSelfie
+      Order: 2
+      Template: ./templates/stepfunction-lambdas.yaml   
+      StackName: twitterSelfie-stepfunction-lambdas
+      Package: true
+      Capabilities: [CAPABILITY_IAM, CAPABILITY_AUTO_EXPAND]
+      Parameters:
+        TBucket: ${default.core.TBucket}
+        DdbImageTable: ${default.core.DdbImageTable}
+        DdbStatsTable: ${default.core.DdbStatsTable}
+
+    statemachine:
+      Extends: twitterSelfie
+      Order: 3
+      Template: ./templates/statemachine.yaml     
+      StackName: twitterSelfie-statemachine
+      Parameters:
+        RekognitionLambdaArn: ${default.stepfunction-lambdas.RekognitionLambdaArn}
+        ProcessFacesLambdaArn: ${default.stepfunction-lambdas.ProcessFacesLambdaArn}
+
+    lambdas:
+      Extends: twitterSelfie
+      Order: 4
+      Template: ./templates/lambdas.yaml  
+      StackName: twitterSelfie-lambdas
+      Package: true
+      Capabilities: [CAPABILITY_IAM, CAPABILITY_AUTO_EXPAND]
+      Parameters:
+        TBucket: ${default.core.TBucket}
+        DdbImageTable: ${default.core.DdbImageTable}
+        DdbStatsTable: ${default.core.DdbStatsTable}
+        StateMachineName: ${default.statemachine.StateMachineName}
+        StateMachineArn: ${default.statemachine.StateMachineArn}
+        CoreLayer: ${default.stepfunction-lambdas.CoreLayer}

@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Twitter selfie rekognition demo'
+
+Resources:
+
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteReportsAfter7Days
+            ExpirationInDays: 7
+            Status: Enabled
+            Prefix: "selfie-reports"
+          - Id: DeleteAthenaReportsAfter7Days
+            ExpirationInDays: 7
+            Status: Enabled
+            Prefix: "selfie-ath-results"
+
+  ImageTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName: "img_url"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "img_url"
+          KeyType: "HASH"
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expire_at
+        Enabled: True
+
+
+  StatsTable: 
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - 
+          AttributeName: "id"
+          AttributeType: "S"
+        - 
+          AttributeName: "dt"
+          AttributeType: "S"
+      KeySchema: 
+        - 
+          AttributeName: "id"
+          KeyType: "HASH"
+        - 
+          AttributeName: "dt"
+          KeyType: "RANGE"
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: expire_at
+        Enabled: True
+
+Outputs:
+  TBucket:
+      Value: !Ref Bucket
+  DdbImageTable:
+      Value: !Ref ImageTable
+  DdbStatsTable:
+      Value: !Ref StatsTable
+    
