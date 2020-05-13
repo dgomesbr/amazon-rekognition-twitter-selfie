@@ -111,6 +111,9 @@ npm run build
 aws s3 cp dist s3://<app-bucket> --recursive --acl public-read
 ```
 
-5. Configure the application bucket to host a static website. https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html 
+5. Configure the application bucket to host a static website. 
+```
+aws s3 website s3://<app-bucket>/ --index-document index.html --error-document error.html
+```
 
 
