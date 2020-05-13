@@ -27,7 +27,7 @@ The Twitter-Selfie app is deployed through CloudFormation with an additional Vue
 ```
 cfn-cli stack deploy
 ```
-3. cfn-cli will install 4 cloudformation stacks and at the you should see:
+1. cfn-cli will install 4 cloudformation stacks. The last stack is called *twitterSelfie-lambdas* and you should see a *Stack deployment complete* after it:
 ```
 02/30/22 17:00:38 - CREATE_COMPLETE - twitterSelfie-lambdas(AWS::CloudFormation::Stack) - arn:aws:cloudformation:us-west-2:00000000000:stack/twitterSelfie-lambdas/aaaad0a0-953a-11aa-aa32-06ae8ae0aa5a
 Stack deployment complete.
@@ -35,7 +35,7 @@ Stack deployment complete.
 
 ### Step 2: Configure the twitter api keys and the Twitter Source Lambda
 
-1. The Twitter Source lambda is based on the https://github.com/awslabs/aws-serverless-twitter-event-source. 
+1. The Twitter Source lambda is based on the https://github.com/awslabs/aws-serverless-twitter-event-source. This lambda is responsible for connecting to twitter and pull the data to be processed. 
    1.1 This is how the Twitter Source app was configured: 
      - **SearchText** - *selfie* 
      - **StreamModeEnabled** - *true*
@@ -74,12 +74,12 @@ aws ssm put-parameter --name /twitter-event-source/access_token_secret --value <
 
 ### Step 3 : Create selfie table in Amazon Athena
 
-1. Obtain the bucket name that solution uses to store the data that will be queries from athena running the command:
+1. For this step the applicaton bucket name is required, since the solution stores and queries the data in this bucket.
 ```
 aws cloudformation describe-stack-resource --stack-name twitterSelfie-core --logical-resource-id Bucket --query "StackResourceDetail.PhysicalResourceId"
 ```
 
-2. Edit the file athena.sql by replacing the *app-bucket* with the bucket name shown on the command above at the line **s3://\<app-bucket\>/selfie-reports/**
+2. Edit the file athena.sql by replacing the *\<app-bucket\>* with the bucket name shown on the command above. The line that needs to be changed is the following: **s3://\<app-bucket\>/selfie-reports/**
 
 3. Create the table structure at Athena by running:
 ```
