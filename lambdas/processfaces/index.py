@@ -11,10 +11,9 @@ from datetime import datetime, timedelta
 from PIL import Image
 from io import BytesIO
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
-patch(['requests'])
+patch_all()
 
 S3Bucket = os.getenv('TBucket')
 CollectionId = os.getenv('CollectionId')
@@ -27,7 +26,8 @@ rek = boto3.client('rekognition')
 
 def handler(event, context):
     try:
-        #logger.info(event)
+        xray_recorder.begin_subsegment('handler')
+        xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
         faces_count = 0
         faces = []
         fdata = {}
@@ -97,8 +97,13 @@ def handler(event, context):
             )
         
         logger.info(str(faces_count) + " faces")
+        xray_recorder.end_subsegment()
         return {'result': 'Succeed', 'count': str(faces_count) }
 
     except Exception as e:
         logger.error(str(e))
+        xray_recorder.end_subsegment()
         return {'result': 'Fail', 'msg': str(e) }
+
+    finally:
+        xray_recorder.end_subsegment()

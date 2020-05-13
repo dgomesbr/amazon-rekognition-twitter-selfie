@@ -7,9 +7,9 @@ import logging
 import time
 import os
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
+patch_all()
 
 AthQueryLambdaName = os.getenv('AthQueryLambdaName')
 
@@ -25,6 +25,8 @@ payload = {}
 
 def handler(event, context):
     try:
+        xray_recorder.begin_subsegment('handler')
+        xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
         rekEmotions = ["HAPPY","SAD","ANGRY","CONFUSED","DISGUSTED","SURPRISED","CALM","FEAR"]
         for emotion in rekEmotions:
             query_str = """

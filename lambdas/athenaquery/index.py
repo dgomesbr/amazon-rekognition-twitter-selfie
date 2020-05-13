@@ -7,9 +7,9 @@ import logging
 import time
 import os
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
+patch_all()
 
 DdbStatsTable = os.getenv('DdbStatsTable')
 S3Bucket = os.getenv('TBucket')
@@ -49,6 +49,7 @@ def AddToDdbStat(result):
         logger.error(e)
         return False
 
+@xray_recorder.capture('AthQuery')
 def fetchall_athena(query_string, emotion):
     query_id = ath.start_query_execution(
         QueryString=query_string,
@@ -85,7 +86,8 @@ def fetchall_athena(query_string, emotion):
     return results
         
 def handler(event, context):
-        #logger.info(event)
+        xray_recorder.begin_subsegment('handler')
+        xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
     
         res = fetchall_athena(event["query"], event["type"])
 

@@ -7,9 +7,9 @@ import logging
 import time
 import os
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
+patch_all()
 
 s3_bucket = os.getenv('TBucket')
 AthDispatcherLambdaName = os.getenv('AthDispatcherLambdaName')
@@ -27,7 +27,8 @@ payload = {}
 
 def handler(event, context):
     try:
-       
+        xray_recorder.begin_subsegment('handler')
+        xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
         #logger.info(event)        
         if 'body' not in event:
             logger.error( 'Missing parameters')

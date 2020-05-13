@@ -43,8 +43,31 @@ Resources:
         ThrottlingBurstLimit: 200
       FailOnWarnings: True
 
+  TweetSource:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location:
+        ApplicationId: arn:aws:serverlessrepo:us-east-1:077246666028:applications/aws-serverless-twitter-event-source
+        SemanticVersion: 2.0.0
+      Parameters:
+        # Non-URL-encoded search text poller should use when querying Twitter Search API.
+        #SearchText: '#serverless -filter:nativeretweets'
+        SearchText: 'selfie'
+        # Name of lambda function that should be invoked to process tweets. Note, this must be a function name and not a function ARN.
+        TweetProcessorFunctionName: !Ref Parser
+        # This app assumes API keys needed to use the Twitter API are stored as SecureStrings in SSM Parameter Store under the prefix
+        # defined by this parameter. See the app README for details.
+        #SSMParameterPrefix: twitter-event-source # Uncomment to override default value
+        # Frequency in minutes to poll for more tweets.
+        PollingFrequencyInMinutes: 10 # Uncomment to override default value
+        # Max number of tweets to send to the TweetProcessor lambda function on each invocation.
+        #BatchSize: 15 # Uncomment to override default value
+        # If true, the app will remember the last tweet found and only invoke the tweet processor function for newer tweets.
+        # If false, the app will be stateless and invoke the tweet processor function with all tweets found in each polling cycle.
+        StreamModeEnabled: true # Uncomment to override default value
+
   Parser:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ../lambdas/parser/
       Policies:
@@ -64,7 +87,7 @@ Resources:
           DdbImageTable: !Ref DdbImageTable
 
   AthenaQuery:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ../lambdas/athenaquery/
       Timeout: 300
@@ -83,7 +106,7 @@ Resources:
           DdbStatsTable: !Ref DdbStatsTable
 
   AthenaDispatcher:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ../lambdas/athenadispatcher/
       Timeout: 300
@@ -112,7 +135,7 @@ Resources:
           AthQueryLambdaName: !Ref AthenaQuery
 
   GetSelfies:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ../lambdas/getselfies/
       Timeout: 300
@@ -142,7 +165,7 @@ Resources:
           DdbStatsTable: !Ref DdbStatsTable
 
   DelSelfie:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction     
+    Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ../lambdas/delselfie/
       Timeout: 300

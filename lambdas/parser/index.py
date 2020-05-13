@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
+patch_all()
 
 xray_recorder.configure(service='twitterSelfie')
 
@@ -58,8 +58,7 @@ def AddImage(url,filename):
 @xray_recorder.capture('StepFunction')
 def CallStepFunction(img):
     hdata = {}
-    guid_str = str(uuid.uuid4().hex)
-    xray_recorder.current_subsegment().put_annotation('image_url', img)  
+    guid_str = str(uuid.uuid4().hex) 
     hdata["image_url"] = img
     hdata['guidstr'] = guid_str
     client = boto3.client('stepfunctions') 
@@ -72,6 +71,8 @@ def CallStepFunction(img):
     logger.info(json.dumps(hdata))    
 
 def handler(event, context):
+    xray_recorder.begin_subsegment('handler')
+    xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
     logger.info(str(len(event)) + " records")
     for rec in event:
         a = json.dumps(rec)

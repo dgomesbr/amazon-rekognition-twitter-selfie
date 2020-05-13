@@ -8,9 +8,9 @@ import logging
 import csv
 import os
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
+patch_all()
 
 DdbStatsTable = os.getenv('DdbStatsTable')
 s3_bucket = os.getenv('TBucket')
@@ -71,6 +71,9 @@ def GetStats():
 
 def handler(event, context):
     try:
+        xray_recorder.begin_subsegment('handler')
+        xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
+        
         get_last_modified = lambda obj: int(obj['LastModified'].strftime('%s')) 
     
         emotions_results = {}

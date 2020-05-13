@@ -9,10 +9,9 @@ import io
 import os
 import requests
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core import patch
+from aws_xray_sdk.core import patch_all
 
-patch(['boto3'])
-patch(['requests'])
+patch_all()
 
 DdbStatsTable = os.getenv('DdbStatsTable')
 S3Bucket = os.getenv('TBucket')
@@ -112,20 +111,21 @@ def UpdateStat(status, value):
 
 def handler(event, context):
     try: 
+        xray_recorder.begin_subsegment('handler')
+        xray_recorder.current_subsegment().put_annotation('Lambda', context.function_name)
         today = datetime.utcnow()
         if today.day == 1: 
             InitializeStat(year_month)
         if today.weekday() == 0:
-            InitializeStat(year_week)
-
-        # Reckoginition Collection
-        Initialize()
+            InitializeStat(year_week)        
         
         r = requests.get(event["image_url"], allow_redirects=True)
 
         attributes=[]
         attributes.append("DEFAULT")
         attributes.append("ALL")
+
+        
         mod_response = rek.detect_moderation_labels(
             Image={
                 'Bytes': r.content
@@ -135,7 +135,8 @@ def handler(event, context):
 
         if len(mod_response["ModerationLabels"]) != 0:
             logger.warning("MODERATED " + str(mod_response))
-            UpdateStat("moderated", "1")            
+            xray_recorder.current_subsegment().put_annotation('Moderation', mod_response)
+            UpdateStat("moderated", "1")        
             return {'result': 'Fail', 'msg': 'Image Moderated', 'labels':mod_response["ModerationLabels"] }
 
         rek_response = rek.index_faces(
@@ -158,9 +159,16 @@ def handler(event, context):
             
         else:
             logger.error('Unable to rekognize face')
+            xray_recorder.end_subsegment()
             UpdateStat("error", "1")
             return {'result': 'Fail', 'msg': 'Unable to rekognize face'}
 
     except Exception as e:
         logger.error(str(e))
+        xray_recorder.end_subsegment()
+        # Reckoginition Collection
+        Initialize()
         return {'result': 'Fail', 'msg': str(e)}
+
+    finally:
+        xray_recorder.end_subsegment()
