@@ -1,10 +1,11 @@
 ## Amazon Rekognition Twitter Selfie 
 
-In this Serverless app we show a rank of the happiest, saddest among other emotions [Amazon Rekognition](https://aws.amazon.com/rekognition/) can detect from twits that have the word selfie in it. The app relies on lambda functions that extract, process, store and report the information from the picture. It is important to note that Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition moderation feature, but from occasionally inappropriate photos can appear. **User at your own discretion**
-
 <img src="images/app.png" alt="app" width="800"/>
 
-See the diagram below for a depiction of the complete architecture.
+In this Serverless app we show a rank of the happiest, saddest among other emotions [Amazon Rekognition](https://aws.amazon.com/rekognition/) can detect from twits that have the word selfie in it. The app relies on lambda functions that extract, process, store and report the information from the picture. It is important to note that Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition moderation feature, but from occasionally inappropriate photos can appear. **User at your own discretion**
+
+
+Below is the diagram for a depiction of the complete architecture.
 
 <img src="images/twitter-selfie.png" alt="architecture" width="1100"/>
 
@@ -28,7 +29,7 @@ cfn-cli stack deploy
 ```
 3. cfn-cli will install 4 cloudformation stacks and at the you should see:
 ```
-05/13/20 17:00:38 - CREATE_COMPLETE - twitterSelfie-lambdas(AWS::CloudFormation::Stack) - arn:aws:cloudformation:us-west-2:00000000000:stack/twitterSelfie-lambdas/aaaad0a0-953a-11aa-aa32-06ae8ae0aa5a
+02/30/22 17:00:38 - CREATE_COMPLETE - twitterSelfie-lambdas(AWS::CloudFormation::Stack) - arn:aws:cloudformation:us-west-2:00000000000:stack/twitterSelfie-lambdas/aaaad0a0-953a-11aa-aa32-06ae8ae0aa5a
 Stack deployment complete.
 ```
 
