@@ -8,8 +8,6 @@
 </template>
 
 <script>
-const baseUrl = "https://hkaq3l76j1.execute-api.us-west-2.amazonaws.com";
-
 import SelfieCard from "../components/SelfieCard";
 
 export default {
@@ -19,6 +17,7 @@ export default {
   },
   data() {
     return {
+      baseUrl: process.env.VUE_APP_AWS_API_URL,
       selfies: []
     };
   },
@@ -28,8 +27,8 @@ export default {
   methods: {
     getSelfies() {
       try {
-        console.log("running Axios");
-        this.$http.get(baseUrl + "/selfies").then(results => {
+        //console.log(this.baseUrl)
+        this.$http.get(this.baseUrl + "/selfies").then(results => {
           this.selfies = results.data;
         });
       } catch (error) {

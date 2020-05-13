@@ -23,10 +23,10 @@
 </template>
 
 <script>
-const baseUrl = "https://hkaq3l76j1.execute-api.us-west-2.amazonaws.com";
 
 export default {
   props: {
+    baseUrl: process.env.VUE_APP_AWS_API_URL,
     selfie: {}
   },
   mounted() {
@@ -93,9 +93,9 @@ export default {
     delSelfie(id, emotion) {
       console.log("del: " + id + " " + emotion);
       try {
-        console.log("running Axios");
+        //console.log("calling " + this.baseUrl);
         this.$http
-          .post(baseUrl + "/delselfie", {
+          .post(this.baseUrl + "/delselfie", {
             id: id,
             emotion: emotion
           })

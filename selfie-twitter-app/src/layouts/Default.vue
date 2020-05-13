@@ -15,7 +15,7 @@
         <q-toolbar-title>Twitter Selfie Demo</q-toolbar-title> <span caption>Rank from the last 7 days</span>
       </q-toolbar>
       <q-banner class="bg-orange text-white">
-        Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition feature, but from occasionally inappropriate photos can appear. Please use the delete icon to remove these photos from the database.    
+        Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition's moderation feature, but from occasionally inappropriate photos can appear. Please use the delete icon to remove these photos from the database.    
     </q-banner>
     </q-header>
 
