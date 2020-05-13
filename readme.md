@@ -4,7 +4,7 @@ In this Serverless app we show a rank of the happiest, saddest among other emoti
 
 See the diagram below for a depiction of the complete architecture.
 
-<img src="images/twitter-selfie.png.jpeg" alt="drawing" width="1400"/>
+<img src="images/twitter-selfie.png" alt="architecture" width="1400"/>
 
 ## Initial environment setup
 
