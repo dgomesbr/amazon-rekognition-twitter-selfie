@@ -37,32 +37,31 @@ Stack deployment complete.
 
 1. The Twitter Source lambda is based on the https://github.com/awslabs/aws-serverless-twitter-event-source. 
    1.1 This is how the Twitter Source app was configured: 
-   - **SearchText** - *selfie* 
-   - **StreamModeEnabled** - *true*
-   - **PollingFrequencyInMinutes** - 10 min
-   - **BatchSize** - 15
-   - **TweetProcessorFunctionName** - The Parser's Lambda Function Arn.
+     - **SearchText** - *selfie* 
+     - **StreamModeEnabled** - *true*
+     - **PollingFrequencyInMinutes** - 10 min
+     - **BatchSize** - 15
+     - **TweetProcessorFunctionName** - The Parser's Lambda Function Arn.
 
 2. The app requires the following Twitter API Keys: Consumer Key (API Key), Consumer Secret (API Secret), Access Token, and Access Token Secret. The following steps walk you through registering the app with your Twitter account to create these values.
-
-    2.1 Create a Twitter account if you do not already have one
-    2.2 Register a new application with your Twitter account:
-        - Go to http://twitter.com/oauth_clients/new
-        - Click "Create New App"
-        - Under Name, enter something descriptive (but unique), e.g., aws-serverless-twitter-es
-        - Enter a description
-        - Under Website, you can enter https://github.com/awslabs/aws-serverless-twitter-event-source
-        - Leave Callback URL blank
-        - Read and agree to the Twitter Developer Agreement
-        - Click "Create your Twitter application"
-    2.3 (Optional, but recommended) Restrict the application permissions to read only
-        - From the detail page of your Twitter application, click the "Permissions" tab
-        - Under the "Access" section, make sure "Read only" is selected and click the "Update Settings" button
-    2.4 Generate an access token:
-        - From the detail page of your Twitter application, click the "Keys and Access Tokens" tab
-        - On this tab, you will already see the Consumer Key (API Key) and Consumer Secret (API Secret) values required by the app.
-        - Scroll down to the Access Token section and click "Create my access token"
-        - You will now have the Access Token and Access Token Secret values required by the app.
+  2.1 Create a Twitter account if you do not already have one
+  2.2 Register a new application with your Twitter account:
+    - Go to http://twitter.com/oauth_clients/new
+    - Click "Create New App"
+    - Under Name, enter something descriptive (but unique), e.g., aws-serverless-twitter-es
+    - Enter a description
+    - Under Website, you can enter https://github.com/awslabs/aws-serverless-twitter-event-source
+    - Leave Callback URL blank
+    - Read and agree to the Twitter Developer Agreement
+    - Click "Create your Twitter application"
+  2.3 (Optional, but recommended) Restrict the application permissions to read only
+    - From the detail page of your Twitter application, click the "Permissions" tab
+    - Under the "Access" section, make sure "Read only" is selected and click the "Update Settings" button
+  2.4 Generate an access token:
+    - From the detail page of your Twitter application, click the "Keys and Access Tokens" tab
+    - On this tab, you will already see the Consumer Key (API Key) and Consumer Secret (API Secret) values required by the app.
+    - Scroll down to the Access Token section and click "Create my access token"
+    - You will now have the Access Token and Access Token Secret values required by the app.
 
 
 3. The app expects to find the Twitter API keys as encrypted SecureString values in SSM Parameter Store. You can setup the required parameters via the AWS Console or using the following AWS CLI commands:
@@ -80,7 +79,7 @@ aws ssm put-parameter --name /twitter-event-source/access_token_secret --value <
 aws cloudformation describe-stack-resource --stack-name twitterSelfie-core --logical-resource-id Bucket --query "StackResourceDetail.PhysicalResourceId"
 ```
 
-2. Edit the file athena.sql by replacing the *<app-bucket>* with the bucket name shown on the command above at the line **s3://<app-bucket>/selfie-reports/**
+2. Edit the file athena.sql by replacing the *app-bucket* with the bucket name shown on the command above at the line **s3://\<app-bucket\>/selfie-reports/**
 
 3. Create the table structure at Athena by running:
 ```
@@ -99,8 +98,8 @@ aws athena get-query-execution --query-execution-id a4aa277a-99a7-4995-9aa2-495a
 ```
 aws cloudformation describe-stack-resource --stack-name twitterSelfie-lambdas --logical-resource-id HttpApi --query StackResourceDetail.PhysicalResourceId
 ```
-2. Create a file called .env at the *selfie-twitter-app* directory replacing *apigwid* with the value above and the *<aws-region>* with the region your are currently deploying the app. e.g. us-west-2
-   - VUE_APP_AWS_API_URL=https://**<apigwId>**.execute-api.**<aws-region>**.amazonaws.com
+2. Create a file called .env at the *selfie-twitter-app* directory replacing *apigwid* with the value above and the *aws-region* with the region your are currently deploying the app. e.g. us-west-2
+   - VUE_APP_AWS_API_URL=https://**\<apigwId\>**.execute-api.**\<aws-region\>**.amazonaws.com
 
 3. Build the application 
 ```
