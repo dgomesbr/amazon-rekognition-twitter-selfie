@@ -1,6 +1,6 @@
 ## Amazon Rekognition Twitter Selfie 
 
-In this Serverless app we show a rank of the happiest, saddest among other emotions   [Amazon Rekoginition]([Amazon Rekognition – Video and Image - AWS](https://aws.amazon.com/rekognition/)  can detect of twits that have the word selfie in it. The app relies on lambda functions that extract, process, store and report the information from the picture. It is important to note that Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition moderation feature, but from occasionally inappropriate photos can appear. **User at your own discretion**
+In this Serverless app we show a rank of the happiest, saddest among other emotions [Amazon Rekognition](https://aws.amazon.com/rekognition/) can detect from twits that have the word selfie in it. The app relies on lambda functions that extract, process, store and report the information from the picture. It is important to note that Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition moderation feature, but from occasionally inappropriate photos can appear. **User at your own discretion**
 
 See the diagram below for a depiction of the complete architecture.
 
