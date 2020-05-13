@@ -2,7 +2,7 @@
 
 In this Serverless app we show a rank of the happiest, saddest among other emotions [Amazon Rekognition](https://aws.amazon.com/rekognition/) can detect from twits that have the word selfie in it. The app relies on lambda functions that extract, process, store and report the information from the picture. It is important to note that Twitter is a public platform that does not moderate photos uploaded by its users. This demo uses the AWS Reckognition moderation feature, but from occasionally inappropriate photos can appear. **User at your own discretion**
 
-<img src="images/app.png" alt="app" width="800"/
+<img src="images/app.png" alt="app" width="800"/>
 
 See the diagram below for a depiction of the complete architecture.
 
@@ -46,22 +46,22 @@ Stack deployment complete.
 
     2.1 Create a Twitter account if you do not already have one
     2.2 Register a new application with your Twitter account:
-        a. Go to http://twitter.com/oauth_clients/new
-        b. Click "Create New App"
-        c. Under Name, enter something descriptive (but unique), e.g., aws-serverless-twitter-es
-        d. Enter a description
-        e. Under Website, you can enter https://github.com/awslabs/aws-serverless-twitter-event-source
-        f. Leave Callback URL blank
-        g. Read and agree to the Twitter Developer Agreement
-        h. Click "Create your Twitter application"
+        - Go to http://twitter.com/oauth_clients/new
+        - Click "Create New App"
+        - Under Name, enter something descriptive (but unique), e.g., aws-serverless-twitter-es
+        - Enter a description
+        - Under Website, you can enter https://github.com/awslabs/aws-serverless-twitter-event-source
+        - Leave Callback URL blank
+        - Read and agree to the Twitter Developer Agreement
+        - Click "Create your Twitter application"
     2.3 (Optional, but recommended) Restrict the application permissions to read only
-        a. From the detail page of your Twitter application, click the "Permissions" tab
-        b. Under the "Access" section, make sure "Read only" is selected and click the "Update Settings" button
+        - From the detail page of your Twitter application, click the "Permissions" tab
+        - Under the "Access" section, make sure "Read only" is selected and click the "Update Settings" button
     2.4 Generate an access token:
-        a. From the detail page of your Twitter application, click the "Keys and Access Tokens" tab
-        b. On this tab, you will already see the Consumer Key (API Key) and Consumer Secret (API Secret) values required by the app.
-        c. Scroll down to the Access Token section and click "Create my access token"
-        d. You will now have the Access Token and Access Token Secret values required by the app.
+        - From the detail page of your Twitter application, click the "Keys and Access Tokens" tab
+        - On this tab, you will already see the Consumer Key (API Key) and Consumer Secret (API Secret) values required by the app.
+        - Scroll down to the Access Token section and click "Create my access token"
+        - You will now have the Access Token and Access Token Secret values required by the app.
 
 
 3. The app expects to find the Twitter API keys as encrypted SecureString values in SSM Parameter Store. You can setup the required parameters via the AWS Console or using the following AWS CLI commands:
